@@ -55,7 +55,7 @@ app.whenReady().then(async () => {
         const { Menu } = require('electron');
         const popup = Menu.prototype.popup;
         Menu.prototype.popup = function () {
-          this.items.find(item => item.label === 'Personnaliser cet onglet').submenu.items.find(item => item.label === 'Vencord Web').click();
+          this.items.find(item => item.label === 'Customize this tab').submenu.items.find(item => item.label === 'Vencord Web').click();
         };
         await action('menu');
         Menu.prototype.popup = popup;
@@ -94,6 +94,8 @@ app.whenReady().then(async () => {
       app.exit(0); return;
     }
     assert.equal(state.accounts.length, 1);
+    assert.equal(state.settings.language, 'en');
+    assert.equal(await run('document.documentElement.lang'), 'en');
     const firstId = state.activeId;
     state = await action('add');
     assert.equal(state.accounts.length, 2);
@@ -120,10 +122,10 @@ app.whenReady().then(async () => {
     await until(async () => (await run('window.multiDiscord.state()')).accounts[1].unread === 7);
     assert.equal(await run("document.querySelector('.badge').textContent"), '7');
     if (process.platform === 'win32') {
-      assert.ok(overlays.some(item => item.description === '7 notifications Discord' && !item.empty && item.valid));
+      await until(() => overlays.some(item => item.description === '7 Discord notifications' && !item.empty && item.valid));
       const firstContents = win.contentView.children.find(v => v.webContents?.session === firstSession).webContents;
       await firstContents.executeJavaScript("document.title = '(3) Discord'");
-      await until(() => overlays.some(item => item.description === '10 notifications Discord'));
+      await until(() => overlays.some(item => item.description === '10 Discord notifications' && !item.empty && item.valid));
       await firstContents.executeJavaScript("document.title = 'Discord'");
     }
     await secondView.webContents.executeJavaScript("document.title = 'Discord'");
@@ -177,7 +179,7 @@ app.whenReady().then(async () => {
     const openDialog = dialog.showOpenDialog;
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [themeFile] });
     Menu.prototype.popup = function () {
-      this.items.find(item => item.label === 'Personnaliser cet onglet').submenu.items.find(item => item.label.startsWith('Importer un thème')).click();
+      this.items.find(item => item.label === 'Customize this tab').submenu.items.find(item => item.label.startsWith('Import a CSS theme')).click();
     };
     await action('menu');
     await until(async () => {
@@ -187,7 +189,7 @@ app.whenReady().then(async () => {
     });
     dialog.showOpenDialog = openDialog;
     Menu.prototype.popup = function () {
-      this.items.find(item => item.label === 'Personnaliser cet onglet').submenu.items.find(item => item.label === 'Retirer le thème CSS').click();
+      this.items.find(item => item.label === 'Customize this tab').submenu.items.find(item => item.label === 'Remove CSS theme').click();
     };
     await action('menu');
     Menu.prototype.popup = popup;
@@ -200,8 +202,8 @@ app.whenReady().then(async () => {
     try { fs.writeFileSync(path.join(dataPath, 'shell.png'), (await win.webContents.capturePage()).toPNG()); } catch { /* Optional capture on CI. */ }
     let startupItem;
     Menu.prototype.popup = function () {
-      startupItem = this.items.find(item => item.label === 'Démarrer avec Windows');
-      this.items.find(item => item.label === 'Réduire au lieu de fermer avec la croix').click();
+      startupItem = this.items.find(item => item.label === 'Start with Windows');
+      this.items.find(item => item.label === 'Minimize instead of closing with the close button').click();
     };
     await action('settings');
     Menu.prototype.popup = popup;
@@ -213,7 +215,7 @@ app.whenReady().then(async () => {
     assert.equal(win.contentView.children.length, 2);
     win.restore();
     await until(() => !win.isMinimized());
-    Menu.prototype.popup = function () { this.items.find(item => item.label === 'Réduire au lieu de fermer avec la croix').click(); };
+    Menu.prototype.popup = function () { this.items.find(item => item.label === 'Minimize instead of closing with the close button').click(); };
     await action('settings');
     assert.equal((await run('window.multiDiscord.state()')).settings.minimizeOnClose, false);
     let prevented = false;
@@ -221,7 +223,7 @@ app.whenReady().then(async () => {
     const messageBox = dialog.showMessageBox;
     let confirmations = 0;
     dialog.showMessageBox = async (_window, options) => {
-      assert.equal(options.title, 'Fermer MultiDiscord ?'); confirmations++;
+      assert.equal(options.title, 'Close MultiDiscord?'); confirmations++;
       return { response: 0 };
     };
     win.emit('close', event);
@@ -230,6 +232,12 @@ app.whenReady().then(async () => {
     assert.equal(win.isDestroyed(), false);
     dialog.showMessageBox = messageBox;
     await action('settings'); // Keep the option enabled to test explicit quit below.
+    Menu.prototype.popup = function () { this.items.find(item => item.label === 'Language').submenu.items.find(item => item.label === 'Français').click(); };
+    await action('settings');
+    assert.equal((await run('window.multiDiscord.state()')).settings.language, 'fr');
+    assert.equal(await run('document.documentElement.lang'), 'fr');
+    assert.equal(await run("document.querySelector('#accounts [data-i18n]').textContent"), 'Comptes');
+    assert.equal(await run("document.querySelector('#settings').title"), 'Paramètres de l’application');
     Menu.prototype.popup = function () { this.items.find(item => item.label === 'Langue').submenu.items.find(item => item.label === 'English').click(); };
     await action('settings');
     assert.equal((await run('window.multiDiscord.state()')).settings.language, 'en');
