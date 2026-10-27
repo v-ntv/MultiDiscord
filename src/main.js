@@ -11,7 +11,7 @@ const { createUpdates } = require('./updates');
 const { createCloseGuard } = require('./close-guard');
 const { discordUserAgent } = require('./browser-compatibility');
 
-const HEADER_HEIGHT = 108;
+const HEADER_HEIGHT = 48;
 let window, config, configPath;
 const views = new Map();
 const runtime = new Map();
@@ -271,7 +271,7 @@ else {
   app.setAppUserModelId('fr.multidiscord.desktop');
   app.on('second-instance', () => { if (window) { if (window.isMinimized()) window.restore(); window.show(); window.focus(); } });
   app.whenReady().then(() => {
-    screenShare = createScreenShareManager(() => config?.settings.language || 'fr');
+    screenShare = createScreenShareManager(() => config?.settings.language || 'en');
     configPath = path.join(app.getPath('userData'), 'accounts.json');
     try { config = normalizeConfig(JSON.parse(fs.readFileSync(configPath, 'utf8'))); }
     catch (error) {

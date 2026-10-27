@@ -11,7 +11,9 @@ test('toutes les chaînes ont une traduction FR et EN avec les mêmes variables'
   }
   assert.equal(translate('en', 'accountNumber', { n: 2 }), 'Account 2');
   assert.equal(normalizeConfig({ settings: { language: 'en', autoUpdates: false } }).settings.language, 'en');
-  assert.equal(normalizeConfig({ settings: { language: 'unknown' } }).settings.language, 'fr');
+  assert.equal(normalizeConfig({ settings: { language: 'unknown' } }).settings.language, 'en');
+  assert.equal(normalizeConfig({}).settings.language, 'en');
+  assert.equal(normalizeConfig({ settings: { language: 'fr' } }).settings.language, 'fr');
 });
 
 test('versions CI déterministes et croissantes sans commit de version automatique', () => {

@@ -3,7 +3,7 @@ const path = require('node:path');
 const { canRequestScreenShare, captureSelection } = require('./screen-share-policy');
 const { translate } = require('./i18n');
 
-function createScreenShareManager(getLanguage = () => 'fr') {
+function createScreenShareManager(getLanguage = () => 'en') {
   let pending = null;
   const t = key => translate(getLanguage(), key);
 

@@ -39,7 +39,7 @@ Un onglet fermé ne reçoit plus de messages ni de notifications jusqu’à sa r
 
 ## Paramètres
 
-Cliquez sur **⚙** dans la barre supérieure.
+Cliquez sur **⚙** dans la barre supérieure. L’application utilise l’anglais par défaut ; choisissez **Language → Français** pour passer en français.
 
 - **Démarrer avec Windows** : ouvre MultiDiscord à l’ouverture de votre session Windows. Cette option est désactivée par défaut et disponible dans la version installée.
 - **Langue → Français / English** : change immédiatement la langue de MultiDiscord, sans déconnecter les comptes. La langue de Discord se règle séparément dans Discord.

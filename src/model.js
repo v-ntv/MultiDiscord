@@ -1,7 +1,7 @@
 const { randomUUID } = require('node:crypto');
 const { translate, normalizeLanguage } = require('./i18n');
 
-function createAccount(index, language = 'fr') {
+function createAccount(index, language = 'en') {
   return { id: randomUUID(), name: translate(language, 'accountNumber', { n: index }), open: true, muted: false };
 }
 

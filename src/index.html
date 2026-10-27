@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="fr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,8 +11,11 @@
 </head>
 <body>
   <header class="shell">
+    <div class="tab-strip">
+      <div id="tabs" role="tablist" data-i18n-aria="accountTabs" aria-label="Comptes Discord"></div>
+      <button id="add" data-i18n-title="addTab" title="Ajouter un compte (Ctrl+T)" aria-label="Ajouter un compte">+</button>
+    </div>
     <div class="toolbar">
-      <div class="brand"><img class="brand-icon" src="assets/icon.svg" alt="">MultiDiscord <span class="beta">PREVIEW</span></div>
       <div class="tools">
         <span id="status" role="status" data-i18n="tagline">Vos comptes, au même endroit</span>
         <button id="mute" class="tool" title="Couper le son de cet onglet" aria-label="Couper le son de cet onglet">♫</button>
@@ -21,11 +24,6 @@
         <button id="accounts" class="account-menu"><span data-i18n="accounts">Comptes</span> <span aria-hidden="true">⌄</span></button>
         <button id="settings" class="tool" data-i18n-title="settings" title="Paramètres de l’application" aria-label="Paramètres de l’application">⚙</button>
       </div>
-    </div>
-    <div class="tab-strip">
-      <div id="tabs" role="tablist" data-i18n-aria="accountTabs" aria-label="Comptes Discord"></div>
-      <button id="add" data-i18n-title="addTab" title="Ajouter un compte (Ctrl+T)" aria-label="Ajouter un compte">+</button>
-      <span class="tab-hint" data-i18n="tabHint">Un compte. Un onglet.</span>
     </div>
   </header>
   <main class="empty">

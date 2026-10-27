@@ -25,7 +25,7 @@
       updateIdle: 'Updates are checked automatically', updateDisabled: 'Automatic updates disabled', updateUnavailable: 'Updates are available in the installed version', updateChecking: 'Checking for updates…', updateDownloading: 'Downloading update: {percent}%', updateReady: 'Update {version} is ready to install', updateCurrent: 'You are using the latest version.', updateError: 'Unable to check for or download updates. Try again later.', updateFound: 'An update is available.', updateTitle: 'MultiDiscord update', updateQuestion: 'Version {version} is ready. Restart now?', updateDetail: 'Restarting will interrupt calls and screen sharing. You can also install the update by quitting the application normally.', restart: 'Restart', later: 'Later'
     }
   };
-  function normalizeLanguage(value) { return value === 'en' ? 'en' : 'fr'; }
+  function normalizeLanguage(value) { return value === 'fr' ? 'fr' : 'en'; }
   function translate(language, key, values = {}) {
     const template = messages[normalizeLanguage(language)][key] || messages.en[key] || key;
     return template.replace(/\{(\w+)\}/g, (_match, name) => String(values[name] ?? `{${name}}`));

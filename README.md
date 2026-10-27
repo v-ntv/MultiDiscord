@@ -39,7 +39,7 @@ Closed tabs do not receive messages or notifications until reopened. To sign out
 
 ## Settings
 
-Click **⚙** in the top toolbar. The application initially uses French; select **Langue → English** to switch to English.
+Click **⚙** in the top toolbar. The application uses English by default; select **Language → Français** to switch to French.
 
 - **Language → Français / English** changes the interface immediately without signing out. Discord’s language is configured separately in Discord.
 - **Start with Windows** opens MultiDiscord when you sign in to Windows. Off by default; available in the installed application.

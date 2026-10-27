@@ -24,7 +24,7 @@ async function download(name, t) {
 }
 
 let installing = false;
-async function installVencord(window, language = 'fr') {
+async function installVencord(window, language = 'en') {
   const t = (key, values) => translate(language, key, values);
   if (installing) return false;
   installing = true;
@@ -46,7 +46,7 @@ async function installVencord(window, language = 'fr') {
   } finally { installing = false; }
 }
 
-async function importTheme(window, id, language = 'fr') {
+async function importTheme(window, id, language = 'en') {
   const t = key => translate(language, key);
   const result = await dialog.showOpenDialog(window, { title: t('themeDialog'), filters: [{ name: t('cssThemes'), extensions: ['css'] }], properties: ['openFile'] });
   if (result.canceled) return false;
