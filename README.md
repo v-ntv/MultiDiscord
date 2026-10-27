@@ -87,6 +87,8 @@ On Windows, **Share system audio** is available when Discord requests audio. It 
 
 Stop sharing using Discord’s sharing controls. Each new request requires a source selection. Closing or reloading the account tab stops its capture. Closed windows and protected content may not be capturable.
 
+If Discord asks you to download its desktop application when you try to share, update MultiDiscord and restart it completely. Version 0.6 corrects the browser identification used by the account tabs.
+
 ## Sign-in and local data
 
 Sign in directly on Discord’s official website within the application using your password or QR code. Passkey prompts are disabled; passkeys are not available in MultiDiscord.

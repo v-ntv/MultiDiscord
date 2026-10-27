@@ -87,6 +87,8 @@ Sous Windows, l’option **Partager le son du système** est proposée si Discor
 
 Arrêtez la diffusion depuis les commandes de partage de Discord. Il faut sélectionner une source à chaque nouvelle demande. Fermer ou recharger l’onglet met fin à sa capture. Une fenêtre fermée ou certains contenus protégés peuvent ne pas être capturables.
 
+Si Discord demande de télécharger son application de bureau lorsque vous lancez le partage, mettez MultiDiscord à jour puis quittez et relancez complètement l’application. La version 0.6 corrige l’identification du navigateur utilisée par les onglets.
+
 ## Connexion et données locales
 
 Connectez-vous directement sur le site officiel de Discord affiché dans l’application, par mot de passe ou code QR. Les fenêtres de clé d’accès sont désactivées ; les passkeys ne sont pas disponibles dans MultiDiscord.

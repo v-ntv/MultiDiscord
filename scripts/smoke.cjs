@@ -21,8 +21,8 @@ if (!process.argv.includes('--live')) app.on('session-created', ses => {
 });
 require('../src/main');
 
-async function until(fn) {
-  const end = Date.now() + 15000;
+async function until(fn, timeout = 15000) {
+  const end = Date.now() + timeout;
   while (Date.now() < end) {
     const result = await fn();
     if (result) return result;
@@ -44,6 +44,9 @@ app.whenReady().then(async () => {
       const details = await until(async () => {
         const page = await remote.executeJavaScript('({ title: document.title, url: location.href, text: document.body.innerText.slice(0, 500) })');
         return /Log In|Connexion|Welcome back|Heureux de vous revoir|QR Code|QR code/i.test(page.text) && page;
+      }, 45000).catch(async error => {
+        console.log('LIVE_PAGE=' + JSON.stringify(await remote.executeJavaScript('({ title: document.title, url: location.href, text: document.body.innerText.slice(0, 600) })')));
+        throw error;
       });
       assert.match(details.url, /^https:\/\/discord\.com\//);
       assert.match(details.text, /Log In|Connexion|Welcome back|Heureux de vous revoir|QR Code|QR code/i);
@@ -63,6 +66,14 @@ app.whenReady().then(async () => {
         assert.equal(result.native, 'object');
         const css = await remote.executeJavaScript('VencordNative.native.getRendererCss()');
         assert.ok(css.length > 100);
+        if (process.argv.includes('--browser-probe')) {
+          const browser = await remote.executeJavaScript(`(() => {
+            return { userAgent: navigator.userAgent, getDisplayMedia: typeof navigator.mediaDevices?.getDisplayMedia };
+          })()`);
+          assert.doesNotMatch(browser.userAgent, /Electron|MultiDiscord/);
+          assert.equal(browser.getDisplayMedia, 'function');
+          console.log('DISCORD_BROWSER=' + JSON.stringify(browser));
+        }
         console.log('PASS: Vencord officiel téléchargé et exécuté au démarrage, CSS disponible');
       }
       try { fs.writeFileSync(path.join(dataPath, 'discord.png'), (await remote.capturePage()).toPNG()); }

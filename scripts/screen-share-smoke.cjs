@@ -9,6 +9,7 @@ fs.mkdirSync(dataPath, { recursive: true });
 app.setPath('userData', dataPath);
 fs.writeFileSync(path.join(dataPath, 'accounts.json'), JSON.stringify({ accounts: [], settings: { language: 'en' } }));
 let host, enumerations = 0;
+const requestAgents = [];
 desktopCapturer.getSources = async () => {
   enumerations++;
   const thumbnail = nativeImage.createFromPath(path.join(__dirname, '../src/assets/icon.png'));
@@ -17,7 +18,10 @@ desktopCapturer.getSources = async () => {
     { id: host.getMediaSourceId(), name: 'MultiDiscord — fenêtre de test', thumbnail, display_id: '', appIcon: null }
   ];
 };
-app.on('session-created', ses => ses.protocol.handle('https', () => new Response('<!doctype html><title>Discord test</title><body style="background:#313338;color:white">Test local du partage d’écran</body>', { headers: { 'content-type': 'text/html' } })));
+app.on('session-created', ses => ses.protocol.handle('https', request => {
+  requestAgents.push(request.headers.get('user-agent'));
+  return new Response('<!doctype html><title>Discord test</title><body style="background:#313338;color:white">Test local du partage d’écran</body>', { headers: { 'content-type': 'text/html' } });
+}));
 require('../src/main');
 
 async function until(fn) {
@@ -36,6 +40,11 @@ app.whenReady().then(async () => {
     await until(() => !host.webContents.isLoading() && host.contentView.children.length);
     const remote = host.contentView.children[0].webContents;
     await until(() => !remote.isLoading());
+    const agent = await remote.executeJavaScript('navigator.userAgent');
+    assert.match(agent, new RegExp(`Chrome/${process.versions.chrome.split('.')[0]}\\.0\\.0\\.0`));
+    assert.doesNotMatch(agent, /Electron|MultiDiscord/);
+    assert.equal(remote.getUserAgent(), remote.session.getUserAgent());
+    assert.ok(requestAgents.includes(agent), 'HTTP and JavaScript must identify the same Chrome browser');
     const start = (gesture = true) => remote.executeJavaScript(`
       window.shareResult = null;
       navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then(stream => {

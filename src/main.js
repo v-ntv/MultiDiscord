@@ -9,6 +9,7 @@ const { createScreenShareManager } = require('./screen-share');
 const { translate } = require('./i18n');
 const { createUpdates } = require('./updates');
 const { createCloseGuard } = require('./close-guard');
+const { discordUserAgent } = require('./browser-compatibility');
 
 const HEADER_HEIGHT = 108;
 let window, config, configPath;
@@ -116,6 +117,9 @@ function attach(account) {
   const contents = view.webContents;
   contents.setAudioMuted(account.muted);
   const session = contents.session;
+  const browserAgent = discordUserAgent(process.versions.chrome);
+  session.setUserAgent(browserAgent);
+  contents.setUserAgent(browserAgent);
   // Authorized by the user: follow Vencord Web's CSP rule only in opted-in sessions.
   session.webRequest.onHeadersReceived({ urls: ['https://discord.com/*', 'https://raw.githubusercontent.com/*'] }, (details, callback) => {
     callback({ responseHeaders: customizationHeaders(details, account.vencord, Boolean(mods.theme(account.id))) });

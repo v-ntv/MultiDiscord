@@ -1,6 +1,6 @@
 {
   "name": "multidiscord",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Multiple Discord accounts in one window.",
   "main": "src/main.js",
   "private": true,
