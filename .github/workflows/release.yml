@@ -1,0 +1,61 @@
+name: Windows release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: node scripts/check-release.cjs
+      - run: npm ci
+      - run: npm run build:icon
+      - run: npm test
+      - run: npm run check
+      - run: npm run test:smoke
+      - run: npm run dist
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Installer checksum
+        shell: pwsh
+        run: |
+          $digest = (Get-FileHash -Algorithm SHA256 -LiteralPath 'dist/MultiDiscord-Setup.exe').Hash.ToLowerInvariant()
+          [IO.File]::WriteAllText((Join-Path $PWD 'dist/SHA256SUMS.txt'), "$digest  MultiDiscord-Setup.exe`n")
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: |
+            dist/MultiDiscord-Setup.exe
+            dist/SHA256SUMS.txt
+          if-no-files-found: error
+
+  draft-release:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: windows-installer
+          path: release
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: gh release create "$RELEASE_TAG" release/MultiDiscord-Setup.exe release/SHA256SUMS.txt --draft --verify-tag --title "MultiDiscord $RELEASE_TAG" --generate-notes

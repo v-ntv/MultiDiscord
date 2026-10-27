@@ -1,0 +1,37 @@
+node_modules/
+dist/
+*.log
+.smoke-data/
+
+# Local maintainer documentation and private working files
+*.local.md
+/.local/
+/private/
+
+# Secrets and local credentials
+.env
+.env.*
+!.env.example
+!.env.sample
+.npmrc
+.pypirc
+.netrc
+.git-credentials
+.ssh/
+.aws/
+secrets/
+credentials/
+*.key
+*.pem
+*.pfx
+*.p12
+
+# Discord session data, crash dumps and local backups
+accounts.json
+accounts.json.*
+user-data/
+customizations/
+Partitions/
+*.dmp
+*.bak
+*.backup-*

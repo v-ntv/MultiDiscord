@@ -1,0 +1,40 @@
+{
+  "name": "multidiscord",
+  "version": "0.3.0",
+  "description": "Plusieurs comptes Discord dans une seule fenêtre.",
+  "main": "src/main.js",
+  "private": true,
+  "author": "MultiDiscord",
+  "repository": { "type": "git", "url": "https://github.com/v-ntv/MultiDiscord.git" },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test",
+    "test:smoke": "electron scripts/smoke.cjs",
+    "build:icon": "node scripts/build-icon.cjs",
+    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/discord-preload.js && node --check src/mods.js",
+    "dist": "electron-builder --win nsis --publish never"
+  },
+  "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "electron": "^42.0.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "fr.multidiscord.desktop",
+    "productName": "MultiDiscord",
+    "artifactName": "MultiDiscord-Setup.${ext}",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "include": "build/installer.nsh",
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

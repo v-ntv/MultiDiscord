@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <title>MultiDiscord</title>
+  <rect width="512" height="512" rx="128" fill="#7971f5"/>
+  <path fill="#fff" d="M86 352V168h65v25c16-20 37-30 63-30 29 0 49 12 61 34 18-23 41-34 70-34 47 0 75 31 75 83v106h-69V250c0-23-10-35-28-35-20 0-32 15-32 39v98h-69V250c0-23-10-35-28-35-20 0-39 15-39 39v98Z"/>
+  <circle cx="417" cy="350" r="36" fill="#cdcaff"/>
+</svg>

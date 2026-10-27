@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://cdn.discordapp.com https://media.discordapp.net; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>MultiDiscord</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="renderer.js" defer></script>
+</head>
+<body>
+  <header class="shell">
+    <div class="toolbar">
+      <div class="brand"><img class="brand-icon" src="assets/icon.svg" alt="">MultiDiscord <span class="beta">PREVIEW</span></div>
+      <div class="tools">
+        <span id="status" role="status">Vos comptes, au même endroit</span>
+        <button id="mute" class="tool" title="Couper le son de cet onglet" aria-label="Couper le son de cet onglet">♫</button>
+        <button id="reload" class="tool" title="Recharger l’onglet (Ctrl+R)" aria-label="Recharger l’onglet">↻</button>
+        <span class="divider"></span>
+        <button id="accounts" class="account-menu">Comptes <span aria-hidden="true">⌄</span></button>
+        <button id="settings" class="tool" title="Paramètres de l’application" aria-label="Paramètres de l’application">⚙</button>
+      </div>
+    </div>
+    <div class="tab-strip">
+      <div id="tabs" role="tablist" aria-label="Comptes Discord"></div>
+      <button id="add" title="Ajouter un compte (Ctrl+T)" aria-label="Ajouter un compte">+</button>
+      <span class="tab-hint">Un compte. Un onglet.</span>
+    </div>
+  </header>
+  <main class="empty">
+    <img class="empty-logo" src="assets/icon.svg" alt="">
+    <span class="eyebrow">VOTRE ESPACE DISCORD</span>
+    <h1>Tous vos mondes.<br>Une seule fenêtre.</h1>
+    <p>Personnel, gaming, travail… Retrouvez chaque compte<br>dans son propre onglet, avec sa propre session.</p>
+    <button id="first-account" class="primary">+ Ajouter un compte Discord</button>
+    <div class="empty-tips"><span><kbd>Ctrl</kbd> + <kbd>T</kbd> nouvel onglet</span><span><kbd>Ctrl</kbd> + <kbd>Tab</kbd> changer de compte</span></div>
+    <span class="empty-note">Connectez-vous directement sur discord.com.<br>Rouvrez vos comptes fermés depuis le menu « Comptes ».</span>
+  </main>
+</body>
+</html>
