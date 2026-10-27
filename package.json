@@ -1,27 +1,33 @@
 {
   "name": "multidiscord",
-  "version": "0.3.0",
-  "description": "Plusieurs comptes Discord dans une seule fenêtre.",
+  "version": "0.5.0",
+  "description": "Multiple Discord accounts in one window.",
   "main": "src/main.js",
   "private": true,
   "author": "MultiDiscord",
-  "repository": { "type": "git", "url": "https://github.com/v-ntv/MultiDiscord.git" },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/v-ntv/MultiDiscord.git"
+  },
   "scripts": {
     "start": "electron .",
     "test": "node --test",
     "test:smoke": "electron scripts/smoke.cjs",
+    "test:screen-share": "electron scripts/screen-share-smoke.cjs",
+    "test:updates": "electron scripts/update-smoke.cjs",
     "build:icon": "node scripts/build-icon.cjs",
-    "check": "node --check src/main.js && node --check src/preload.js && node --check src/renderer.js && node --check src/discord-preload.js && node --check src/mods.js",
+    "check": "node scripts/check-syntax.cjs",
     "dist": "electron-builder --win nsis --publish never"
   },
   "devDependencies": {
     "@resvg/resvg-js": "^2.6.2",
-    "electron": "^42.0.0",
+    "electron": "^45.0.0",
     "electron-builder": "^26.0.12"
   },
   "build": {
     "appId": "fr.multidiscord.desktop",
     "productName": "MultiDiscord",
+    "publish": { "provider": "github", "owner": "v-ntv", "repo": "MultiDiscord", "releaseType": "release" },
     "artifactName": "MultiDiscord-Setup.${ext}",
     "files": [
       "src/**/*",
@@ -36,5 +42,8 @@
       "include": "build/installer.nsh",
       "allowToChangeInstallationDirectory": true
     }
+  },
+  "dependencies": {
+    "electron-updater": "^6.8.11"
   }
 }

@@ -76,6 +76,7 @@ app.whenReady().then(async () => {
       assert.equal(state.accounts[1].name, 'Travail');
       assert.equal(state.accounts[1].muted, true);
       assert.equal(state.settings.minimizeOnClose, true);
+      assert.equal(state.settings.language, 'en');
       const first = session.fromPartition(`persist:account-${state.accounts[0].id}`);
       assert.equal((await first.cookies.get({ name: 'isolation-check' }))[0]?.value, 'first');
       console.log('PASS: configuration et cookie restaurés après redémarrage');
@@ -206,11 +207,29 @@ app.whenReady().then(async () => {
     assert.equal((await run('window.multiDiscord.state()')).settings.minimizeOnClose, false);
     let prevented = false;
     const event = { preventDefault: () => { prevented = true; } };
+    const messageBox = dialog.showMessageBox;
+    let confirmations = 0;
+    dialog.showMessageBox = async (_window, options) => {
+      assert.equal(options.title, 'Fermer MultiDiscord ?'); confirmations++;
+      return { response: 0 };
+    };
     win.emit('close', event);
-    assert.equal(prevented, false);
+    assert.equal(prevented, true);
+    await until(() => confirmations === 1);
+    assert.equal(win.isDestroyed(), false);
+    dialog.showMessageBox = messageBox;
     await action('settings'); // Keep the option enabled to test explicit quit below.
+    Menu.prototype.popup = function () { this.items.find(item => item.label === 'Langue').submenu.items.find(item => item.label === 'English').click(); };
+    await action('settings');
+    assert.equal((await run('window.multiDiscord.state()')).settings.language, 'en');
+    assert.equal(await run('document.documentElement.lang'), 'en');
+    assert.equal(await run("document.querySelector('#accounts [data-i18n]').textContent"), 'Accounts');
+    assert.equal(await run("document.querySelector('#settings').title"), 'Application settings');
+    try { fs.writeFileSync(path.join(dataPath, 'english.png'), (await win.webContents.capturePage()).toPNG()); } catch { /* Optional capture. */ }
+    Menu.prototype.popup = function () { assert.ok(this.items.find(item => item.label === 'Language')); assert.ok(this.items.find(item => item.label === 'Check for updates')); };
+    await action('settings');
     Menu.prototype.popup = popup;
-    console.log('PASS: sessions, badges Windows agrégés/effacés, profils, thèmes, réduction par la croix et paramètres persistants');
+    console.log('PASS: sessions, badges, profils, thèmes, réduction, confirmation de fermeture, menus et interface en anglais');
     console.log(`SMOKE_DATA=${dataPath}`);
     app.quit();
   } catch (error) {

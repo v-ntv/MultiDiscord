@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <title data-i18n="shareTitle">Partager un écran — MultiDiscord</title>
+  <link rel="stylesheet" href="screen-share.css">
+  <script src="i18n.js" defer></script>
+  <script src="screen-share-renderer.js" defer></script>
+</head>
+<body>
+  <header><span class="eyebrow" data-i18n="shareEyebrow">PARTAGE D’ÉCRAN</span><h1 data-i18n="shareHeading">Que souhaitez-vous partager ?</h1><p id="account">Choisissez un écran ou une fenêtre pour Discord.</p></header>
+  <div class="filters" role="group" data-i18n-aria="shareTypes" aria-label="Types de sources">
+    <button type="button" data-kind="screen" data-i18n="screens" aria-pressed="true">Écrans</button>
+    <button type="button" data-kind="window" data-i18n="windows" aria-pressed="false">Fenêtres</button>
+  </div>
+  <main id="sources" data-i18n-aria="sources" aria-label="Sources disponibles"></main>
+  <footer>
+    <label id="audio-option" hidden><input type="checkbox" id="audio"> <span data-i18n="systemAudio">Partager le son du système (toutes les applications)</span></label>
+    <p id="audio-note" data-i18n="audioNote" hidden>Peut inclure le son des autres applications et de l’appel Discord.</p>
+    <p id="error" role="alert"></p>
+    <div class="actions"><button id="cancel" data-i18n="cancel">Annuler</button><button id="share" data-i18n="share" disabled>Partager</button></div>
+  </footer>
+</body>
+</html>

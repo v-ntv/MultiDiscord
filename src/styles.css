@@ -1,6 +1,7 @@
 :root { color-scheme: dark; font-family: 'Segoe UI', system-ui, sans-serif; background: #1e1f25; color: #edecf2; font-synthesis: none; }
 * { box-sizing: border-box; }
 body { margin: 0; }
+[data-i18n="hero"], [data-i18n="intro"], [data-i18n="emptyNote"] { white-space: pre-line; }
 button, input { font: inherit; }
 button { cursor: pointer; color: inherit; border: 0; }
 button:focus-visible, [role=tab]:focus-visible { outline: 2px solid #a6a0ff; outline-offset: -3px; }

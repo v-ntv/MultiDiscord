@@ -2,31 +2,39 @@ name: Windows release
 
 on:
   push:
-    tags: ['v*']
+    branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: windows-release-main
   cancel-in-progress: false
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
     timeout-minutes: 20
+    outputs:
+      tag: ${{ steps.version.outputs.tag }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           cache: npm
-      - run: node scripts/check-release.cjs
+      - name: Generate release version
+        id: version
+        run: node scripts/prepare-release.cjs
       - run: npm ci
       - run: npm run build:icon
       - run: npm test
       - run: npm run check
       - run: npm run test:smoke
+      - run: npm run test:screen-share
+      - run: npm run test:updates
       - run: npm run dist
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
@@ -41,9 +49,11 @@ jobs:
           path: |
             dist/MultiDiscord-Setup.exe
             dist/SHA256SUMS.txt
+            dist/latest.yml
+            dist/MultiDiscord-Setup.exe.blockmap
           if-no-files-found: error
 
-  draft-release:
+  publish-release:
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -53,9 +63,20 @@ jobs:
         with:
           name: windows-installer
           path: release
-      - name: Create draft release
+      - name: Publish release
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
-          RELEASE_TAG: ${{ github.ref_name }}
-        run: gh release create "$RELEASE_TAG" release/MultiDiscord-Setup.exe release/SHA256SUMS.txt --draft --verify-tag --title "MultiDiscord $RELEASE_TAG" --generate-notes
+          RELEASE_TAG: ${{ needs.build.outputs.tag }}
+          RELEASE_COMMIT: ${{ github.sha }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            if [ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" = "true" ]; then
+              gh release upload "$RELEASE_TAG" release/MultiDiscord-Setup.exe release/SHA256SUMS.txt release/latest.yml release/MultiDiscord-Setup.exe.blockmap --clobber
+              gh release edit "$RELEASE_TAG" --draft=false --latest
+              exit 0
+            fi
+            echo "Release $RELEASE_TAG already exists; keeping the published files unchanged."
+            exit 0
+          fi
+          gh release create "$RELEASE_TAG" release/MultiDiscord-Setup.exe release/SHA256SUMS.txt release/latest.yml release/MultiDiscord-Setup.exe.blockmap --target "$RELEASE_COMMIT" --latest --title "MultiDiscord $RELEASE_TAG" --generate-notes

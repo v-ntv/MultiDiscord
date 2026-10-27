@@ -3,17 +3,18 @@ const tabs = document.querySelector('#tabs');
 const status = document.querySelector('#status');
 let current = { accounts: [], activeId: null };
 let editingId = null;
+const t = (key, values) => window.MultiDiscordI18n.translate(current.settings?.language, key, values);
 
 async function action(name, id, value) {
   try { render(await api.action(name, id, value)); }
-  catch { status.textContent = 'Une erreur est survenue. Relancez l’application.'; status.classList.add('error'); }
+  catch { status.textContent = t('appError'); status.classList.add('error'); }
 }
 
 function rename(account, label) {
   editingId = account.id;
   const input = document.createElement('input');
   input.className = 'rename'; input.maxLength = 40; input.value = account.name;
-  input.setAttribute('aria-label', 'Nom du compte');
+  input.setAttribute('aria-label', t('renameLabel'));
   label.replaceWith(input); input.focus(); input.select();
   let finished = false;
   function finish(commit) {
@@ -33,8 +34,9 @@ function rename(account, label) {
 
 function render(state) {
   current = state;
+  window.MultiDiscordI18n.applyDocument(document, state.settings?.language);
   if (editingId) return;
-  const previousFocus = document.activeElement?.closest('[data-id]')?.dataset.id;
+  const previousFocus = document.hasFocus() ? document.activeElement?.closest('[data-id]')?.dataset.id : undefined;
   const scroll = tabs.scrollLeft;
   tabs.replaceChildren();
   for (const account of state.accounts) {
@@ -45,9 +47,9 @@ function render(state) {
     tab.setAttribute('aria-selected', String(account.id === state.activeId));
     tab.setAttribute('aria-label', `${displayName}${account.unread ? `, ${account.unread} notifications` : ''}`);
     tab.tabIndex = account.id === state.activeId ? 0 : -1;
-    tab.title = `${displayName} — ${account.error || account.title || 'Discord'}${account.profile ? '' : '\nDouble-cliquez pour renommer'}`;
+    tab.title = `${displayName} — ${account.error ? t(account.error) : account.title || 'Discord'}${account.profile ? '' : `\n${t('renameHint')}`}`;
     const avatar = document.createElement('span'); avatar.className = 'avatar';
-    avatar.textContent = account.loading ? '···' : account.name.slice(0, 2).toUpperCase();
+    avatar.textContent = account.loading ? '···' : displayName.slice(0, 2).toUpperCase();
     if (account.profile?.avatarUrl) {
       const image = document.createElement('img'); image.src = account.profile.avatarUrl; image.alt = ''; image.referrerPolicy = 'no-referrer';
       image.addEventListener('error', () => image.remove());
@@ -55,7 +57,7 @@ function render(state) {
     }
     const name = document.createElement('span'); name.className = 'tab-name'; name.textContent = displayName;
     const close = document.createElement('button'); close.className = 'close'; close.textContent = '×';
-    close.title = 'Fermer l’onglet (compte conservé)'; close.setAttribute('aria-label', `Fermer ${account.name}`);
+    close.title = t('closeTab'); close.setAttribute('aria-label', t('closeAccount', { name: displayName }));
     close.addEventListener('click', event => { event.stopPropagation(); action('close', account.id); });
     tab.append(avatar, name);
     if (account.unread) {
@@ -64,7 +66,7 @@ function render(state) {
     }
     if (account.muted || account.audible) {
       const audio = document.createElement('span'); audio.className = 'audio'; audio.textContent = account.muted ? '♩' : '♫';
-      audio.title = account.muted ? 'Son coupé' : 'Audio en cours'; tab.append(audio);
+      audio.title = t(account.muted ? 'muted' : 'audible'); tab.append(audio);
     }
     tab.append(close);
     tab.addEventListener('click', () => { if (current.activeId !== account.id) action('activate', account.id); });
@@ -87,11 +89,13 @@ function render(state) {
   const active = state.accounts.find(a => a.id === state.activeId);
   const mute = document.querySelector('#mute'); mute.disabled = !active;
   mute.setAttribute('aria-pressed', String(active?.muted || false));
-  mute.title = active?.muted ? 'Réactiver le son de cet onglet' : 'Couper le son de cet onglet';
+  mute.title = t(active?.muted ? 'unmute' : 'mute');
   mute.setAttribute('aria-label', mute.title);
   document.querySelector('#reload').disabled = !active;
   status.classList.toggle('error', Boolean(state.saveError || active?.error));
-  status.textContent = state.saveError || active?.error || (active?.loading ? 'Connexion à Discord…' : `${state.accounts.length} compte${state.accounts.length > 1 ? 's' : ''} ouvert${state.accounts.length > 1 ? 's' : ''} · Sessions indépendantes`);
+  status.textContent = state.saveError ? t(state.saveError) : active?.error ? t(active.error) :
+    state.updates && ['updateDownloading', 'updateReady'].includes(state.updates.key) ? t(state.updates.key, state.updates) :
+    active?.loading ? t('connecting') : t(state.accounts.length === 1 ? 'openAccount' : 'openAccounts', { n: state.accounts.length });
   status.title = status.textContent;
 }
 
@@ -103,5 +107,5 @@ document.querySelector('#reload').addEventListener('click', () => action('reload
 document.querySelector('#mute').addEventListener('click', () => action('mute', current.activeId));
 if (api) {
   api.subscribe(render);
-  api.state().then(render).catch(() => { status.textContent = 'Impossible de charger les comptes.'; });
+  api.state().then(render).catch(() => { status.textContent = t('loadAccountsError'); });
 }

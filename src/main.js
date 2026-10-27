@@ -5,6 +5,10 @@ const { createAccount, normalizeConfig, unreadFromTitle, isDiscord, validateProf
 const mods = require('./mods');
 const { customizationHeaders } = require('./customization-policy');
 const startup = require('./startup').createStartup(app);
+const { createScreenShareManager } = require('./screen-share');
+const { translate } = require('./i18n');
+const { createUpdates } = require('./updates');
+const { createCloseGuard } = require('./close-guard');
 
 const HEADER_HEIGHT = 108;
 let window, config, configPath;
@@ -13,24 +17,41 @@ const runtime = new Map();
 let saveError = null;
 let quitting = false;
 let lastOverlay = -1;
+let screenShare;
+let updates;
 const badgeImages = new Map();
+const t = (key, values) => translate(config?.settings?.language, key, values);
+const closeGuard = createCloseGuard({ getSettings: () => config.settings, isQuitting: () => quitting,
+  confirm: async target => (await dialog.showMessageBox(target, { type: 'question', title: t('confirmTitle'), message: t('confirmMessage'), detail: t('confirmDetail'), buttons: [t('cancel'), t('closeApp')], defaultId: 0, cancelId: 0 })).response === 1,
+  quit: () => app.quit()
+});
 
 function settingsMenu() {
   Menu.buildFromTemplate([
-    { label: 'Démarrer avec Windows', type: 'checkbox', checked: startup.enabled(), enabled: startup.available(), click: item => {
+    { label: t('startup'), type: 'checkbox', checked: startup.enabled(), enabled: startup.available(), click: item => {
       if (!startup.available()) return;
       try { startup.set(item.checked); broadcast(); }
-      catch (error) { dialog.showErrorBox('Démarrage automatique', `Impossible de modifier le démarrage automatique : ${error.message}`); }
+      catch { dialog.showErrorBox(t('startup'), t('startupError')); }
     } },
-    ...(!startup.available() ? [{ label: 'Disponible dans la version installée', enabled: false }] : []),
-    { label: 'Réduire au lieu de fermer avec la croix', type: 'checkbox', checked: config.settings.minimizeOnClose, click: item => {
+    ...(!startup.available() ? [{ label: t('installedOnly'), enabled: false }] : []),
+    { label: t('minimize'), type: 'checkbox', checked: config.settings.minimizeOnClose, click: item => {
       config.settings.minimizeOnClose = item.checked; save(); broadcast();
     } },
+    { label: t('language'), submenu: [
+      { label: 'Français', type: 'radio', checked: config.settings.language === 'fr', click: () => setLanguage('fr') },
+      { label: 'English', type: 'radio', checked: config.settings.language === 'en', click: () => setLanguage('en') }
+    ] },
+    { type: 'separator' },
+    { label: t('autoUpdates'), type: 'checkbox', checked: config.settings.autoUpdates, click: item => { config.settings.autoUpdates = item.checked; save(); updates.settingsChanged(); broadcast(); } },
+    { label: t(updates.state().key, updates.state()), enabled: false },
+    { label: t(updates.state().ready ? 'installUpdate' : 'checkUpdates'), enabled: updates.state().available, click: () => updates.check(true) },
     { type: 'separator' },
     { label: `MultiDiscord ${app.getVersion()}`, enabled: false },
-    { label: 'Quitter MultiDiscord', click: () => app.quit() }
+    { label: t('quit'), click: () => app.quit() }
   ]).popup({ window });
 }
+
+function setLanguage(language) { config.settings.language = language; lastOverlay = -1; save(); broadcast(); }
 
 function save() {
   try {
@@ -38,13 +59,13 @@ function save() {
     fs.renameSync(`${configPath}.tmp`, configPath);
     saveError = null;
   } catch (error) {
-    saveError = 'Impossible de sauvegarder les comptes sur cet ordinateur.';
+    saveError = 'saveError';
     console.error('Configuration:', error.message);
   }
 }
 
 function state() {
-  return { activeId: config.activeId, saveError, settings: { ...config.settings, autoStart: startup.enabled(), canAutoStart: startup.available() }, accounts: config.accounts.filter(a => a.open).map(a => ({ ...a, ...runtime.get(a.id) })) };
+  return { activeId: config.activeId, saveError, updates: updates?.state(), settings: { ...config.settings, autoStart: startup.enabled(), canAutoStart: startup.available() }, accounts: config.accounts.filter(a => a.open).map(a => ({ ...a, ...runtime.get(a.id) })) };
 }
 
 function broadcast() {
@@ -56,7 +77,7 @@ function broadcast() {
     const overlay = Math.min(unread, 100);
     if (lastOverlay !== overlay) {
       if (overlay && !badgeImages.has(overlay)) badgeImages.set(overlay, nativeImage.createFromPath(path.join(__dirname, 'assets', 'badges', `${overlay === 100 ? '99plus' : overlay}.png`)));
-      window.setOverlayIcon(overlay ? badgeImages.get(overlay) : null, overlay ? `${unread} notifications Discord` : 'Aucune notification Discord');
+      window.setOverlayIcon(overlay ? badgeImages.get(overlay) : null, overlay ? t('notifications', { n: unread }) : t('noNotifications'));
       lastOverlay = overlay;
     }
   }
@@ -100,21 +121,24 @@ function attach(account) {
     callback({ responseHeaders: customizationHeaders(details, account.vencord, Boolean(mods.theme(account.id))) });
   });
   let mediaAllowed = false;
-  session.setPermissionCheckHandler((_wc, permission, origin) => isDiscord(origin) && (permission === 'notifications' || (permission === 'media' && mediaAllowed)));
+  session.setPermissionCheckHandler((requester, permission, origin, details) => isDiscord(origin) && (permission === 'notifications' || (permission === 'media' && mediaAllowed) ||
+    (permission === 'display-capture' && requester === contents && details.isMainFrame)));
   session.setPermissionRequestHandler(async (_wc, permission, callback, details) => {
     if (!isDiscord(details.requestingUrl)) return callback(false);
     if (permission === 'notifications') return callback(true);
+    if (permission === 'display-capture') return callback(_wc === contents && details.isMainFrame === true);
     if (permission !== 'media') return callback(false);
     try {
       const result = await dialog.showMessageBox(window, {
-        type: 'question', title: 'Autorisation Discord',
-        message: `${account.name} demande l’accès au microphone ou à la caméra.`,
-        buttons: ['Refuser', 'Autoriser'], defaultId: 0, cancelId: 0
+        type: 'question', title: t('mediaTitle'),
+        message: t('mediaMessage', { name: account.profile?.displayName || account.name }),
+        buttons: [t('deny'), t('allow')], defaultId: 0, cancelId: 0
       });
       mediaAllowed = result.response === 1;
       callback(mediaAllowed);
     } catch { callback(false); }
   });
+  screenShare.install(contents, () => window, () => account.profile?.displayName || account.name);
   contents.setWindowOpenHandler(({ url }) => { external(url); return { action: 'deny' }; });
   const guard = (event, url) => {
     if (!isDiscord(url)) { event.preventDefault(); external(url); }
@@ -126,12 +150,12 @@ function attach(account) {
   contents.on('did-stop-loading', () => update(account.id, { loading: false }));
   contents.on('dom-ready', () => {
     const css = [account.vencord ? mods.vencord()?.css : '', mods.theme(account.id)].filter(Boolean).join('\n');
-    if (css) contents.insertCSS(css).catch(error => update(account.id, { error: `Thème : ${error.message}` }));
+    if (css) contents.insertCSS(css).catch(() => update(account.id, { error: 'themeError' }));
   });
   contents.on('did-fail-load', (_event, code, _description, _url, mainFrame) => {
-    if (mainFrame && code !== -3) update(account.id, { error: 'Connexion impossible. Vérifiez votre réseau puis rechargez cet onglet.', loading: false });
+    if (mainFrame && code !== -3) update(account.id, { error: 'connectionError', loading: false });
   });
-  contents.on('render-process-gone', () => update(account.id, { error: 'Cet onglet s’est arrêté. Rechargez-le pour reprendre.', loading: false }));
+  contents.on('render-process-gone', () => update(account.id, { error: 'crashed', loading: false }));
   contents.on('audio-state-changed', event => update(account.id, { audible: event.audible }));
   contents.on('before-input-event', (event, input) => {
     if (shortcut(input)) event.preventDefault();
@@ -154,7 +178,7 @@ function activate(id) {
 }
 
 function add() {
-  const account = createAccount(config.accounts.length + 1);
+  const account = createAccount(config.accounts.length + 1, config.settings.language);
   config.accounts.push(account);
   activate(account.id);
 }
@@ -179,22 +203,22 @@ function accountMenu() {
   const active = config.accounts.find(a => a.id === config.activeId);
   const reload = () => { save(); broadcast(); views.get(active?.id)?.webContents.reload(); };
   Menu.buildFromTemplate([
-    { label: 'Ajouter un nouveau compte', accelerator: 'CmdOrCtrl+T', click: add },
-    ...(closed.length ? [{ type: 'separator' }, { label: 'Rouvrir un compte', enabled: false }, ...closed.map(a => ({ label: a.profile?.displayName || a.name, click: () => activate(a.id) }))] : []),
+    { label: t('addAccount'), accelerator: 'CmdOrCtrl+T', click: add },
+    ...(closed.length ? [{ type: 'separator' }, { label: t('reopenAccount'), enabled: false }, ...closed.map(a => ({ label: a.profile?.displayName || a.name, click: () => activate(a.id) }))] : []),
     { type: 'separator' },
-    { label: 'Personnaliser cet onglet', enabled: Boolean(active), submenu: [
+    { label: t('customize'), enabled: Boolean(active), submenu: [
       { label: 'Vencord Web', type: 'checkbox', checked: active?.vencord === true, click: async item => {
-        if (item.checked && !mods.vencord() && !await mods.installVencord(window)) return;
+        if (item.checked && !mods.vencord() && !await mods.installVencord(window, config.settings.language)) return;
         active.vencord = item.checked; reload();
       } },
-      { label: 'Mettre à jour Vencord Web', click: async () => { if (await mods.installVencord(window)) { for (const a of config.accounts.filter(a => a.open && a.vencord)) views.get(a.id)?.webContents.reload(); } } },
+      { label: t('updateVencord'), click: async () => { if (await mods.installVencord(window, config.settings.language)) { for (const a of config.accounts.filter(a => a.open && a.vencord)) views.get(a.id)?.webContents.reload(); } } },
       { type: 'separator' },
-      { label: 'Importer un thème CSS (BetterDiscord / Vencord)…', click: async () => { if (await mods.importTheme(window, active.id)) reload(); } },
-      { label: 'Retirer le thème CSS', enabled: Boolean(active && mods.theme(active.id)), click: () => { mods.removeTheme(active.id); reload(); } },
+      { label: t('importTheme'), click: async () => { if (await mods.importTheme(window, active.id, config.settings.language)) reload(); } },
+      { label: t('removeTheme'), enabled: Boolean(active && mods.theme(active.id)), click: () => { mods.removeTheme(active.id); reload(); } },
       { type: 'separator' },
-      { label: 'Plugins natifs BetterDiscord : non compatibles', enabled: false }
+      { label: t('nativePlugins'), enabled: false }
     ] },
-    { label: 'Ouvrir le dossier de personnalisation', click: () => mods.openFolder() }
+    { label: t('openCustomizations'), click: () => mods.openFolder() }
   ]).popup({ window });
 }
 
@@ -227,11 +251,9 @@ function createWindow() {
   window.loadFile(path.join(__dirname, 'index.html'));
   lastOverlay = -1;
   window.once('ready-to-show', () => { lastOverlay = -1; broadcast(); });
-  window.on('close', event => {
-    if (!quitting && config.settings.minimizeOnClose) { event.preventDefault(); window.minimize(); }
-  });
-  window.on('query-session-end', () => { quitting = true; });
-  window.on('session-end', () => { quitting = true; });
+  window.on('close', event => { closeGuard(event, window).catch(console.error); });
+  window.on('query-session-end', () => { quitting = true; updates.shutdown(); });
+  window.on('session-end', () => { quitting = true; updates.shutdown(); });
   for (const account of config.accounts.filter(a => a.open)) attach(account);
   window.on('resize', layout);
   window.on('closed', () => {
@@ -245,6 +267,7 @@ else {
   app.setAppUserModelId('fr.multidiscord.desktop');
   app.on('second-instance', () => { if (window) { if (window.isMinimized()) window.restore(); window.show(); window.focus(); } });
   app.whenReady().then(() => {
+    screenShare = createScreenShareManager(() => config?.settings.language || 'fr');
     configPath = path.join(app.getPath('userData'), 'accounts.json');
     try { config = normalizeConfig(JSON.parse(fs.readFileSync(configPath, 'utf8'))); }
     catch (error) {
@@ -252,13 +275,15 @@ else {
       if (error.code !== 'ENOENT') {
         // Preserve the original before allowing any subsequent save.
         fs.copyFileSync(configPath, `${configPath}.backup-${Date.now()}`);
-        dialog.showErrorBox('Configuration restaurée', 'La configuration était illisible. Une copie a été conservée dans le dossier de données.');
+        dialog.showErrorBox(t('configTitle'), t('configMessage'));
       }
     }
     if (!config.accounts.length) {
-      const account = createAccount(1);
+      const account = createAccount(1, config.settings.language);
       config.accounts.push(account); config.activeId = account.id; save();
     }
+    updates = createUpdates({ app, updater: require('electron-updater').autoUpdater, getWindow: () => window,
+      getSettings: () => config.settings, t, dialog, beforeInstall: () => { quitting = true; }, installationFailed: () => { quitting = false; }, changed: broadcast });
     const discordAccount = event => {
       const entry = [...views].find(([, view]) => view.webContents === event.sender);
       if (!entry || event.senderFrame !== event.sender.mainFrame || !isDiscord(event.senderFrame.url)) return null;
@@ -302,6 +327,7 @@ else {
     });
     Menu.setApplicationMenu(null);
     createWindow();
+    updates.start();
     app.on('activate', () => { if (!window) createWindow(); });
   });
   app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });

@@ -1,94 +1,109 @@
 # MultiDiscord
 
-Tous vos comptes Discord dans une seule fenêtre, avec un onglet par compte.
+English | [Français](README.fr.md)
 
-**[Télécharger pour Windows](https://github.com/v-ntv/MultiDiscord/releases/latest/download/MultiDiscord-Setup.exe)** · [Voir les versions disponibles](https://github.com/v-ntv/MultiDiscord/releases)
+All your Discord accounts in one window, with a separate tab and session for each account.
+
+**[Download for Windows](https://github.com/v-ntv/MultiDiscord/releases/latest/download/MultiDiscord-Setup.exe)** · [All releases](https://github.com/v-ntv/MultiDiscord/releases)
 
 ## Installation
 
-1. Téléchargez `MultiDiscord-Setup.exe` depuis une release de ce dépôt.
-2. Ouvrez l’installateur et suivez les étapes.
-3. Lancez MultiDiscord et connectez-vous sur la page officielle de Discord.
-4. Cliquez sur **+** pour ajouter un autre compte.
+1. Download `MultiDiscord-Setup.exe` from a release in this repository.
+2. Open the installer and follow the steps.
+3. Launch MultiDiscord and sign in on Discord’s official login page.
+4. Click **+** to add another account.
 
-Compatible avec Windows 64 bits. Aucun Node.js, terminal ou clé API n’est nécessaire. Si aucune release n’est encore publiée, l’installateur n’est pas encore disponible au téléchargement. La version actuelle n’est pas signée numériquement et Windows peut afficher un avertissement concernant l’éditeur.
+Requires 64-bit Windows. No Node.js, terminal or API key is needed. The download link becomes available after the first release is published. Current installers are not digitally signed, so Windows may display an unknown-publisher or SmartScreen warning.
 
-## Vos comptes et onglets
+## Accounts and tabs
 
-Chaque onglet possède sa propre session : vous pouvez utiliser plusieurs comptes en même temps sans les déconnecter. Vos sessions et onglets sont conservés après redémarrage.
+Every tab has its own persistent session. You can use several accounts at once without signing out, and your accounts and tabs are restored after restarting the application.
 
-- Le nom et la photo du compte apparaissent automatiquement sur son onglet après connexion. Avant connexion, un double-clic permet de renommer le libellé provisoire.
-- Cliquez sur un onglet pour passer à ce compte.
-- Cliquez sur **×** pour fermer un onglet. Vous pouvez le rouvrir depuis **Comptes → Rouvrir un compte** ; sa session est conservée.
-- Cliquez sur **↻** pour recharger le compte actif.
-- Cliquez sur **♫** pour couper ou réactiver le son du compte actif.
+- Your Discord display name and avatar appear on the tab after sign-in. Before sign-in, double-click the temporary label to rename it.
+- Click a tab to switch accounts.
+- Click **×** to close a tab. Reopen it from **Accounts → Reopen an account**; its session is kept.
+- Click **↻** to reload the active account.
+- Click **♫** to mute or unmute the active account.
 
-Un onglet fermé ne reçoit plus de messages ni de notifications jusqu’à sa réouverture. Pour déconnecter réellement un compte, utilisez la déconnexion dans Discord.
+Closed tabs do not receive messages or notifications until reopened. To sign out of an account, use Discord’s own sign-out command.
 
-### Raccourcis
+### Keyboard shortcuts
 
-| Action | Raccourci |
+| Action | Shortcut |
 | --- | --- |
-| Ajouter un compte | `Ctrl+T` |
-| Compte suivant / précédent | `Ctrl+Tab` / `Ctrl+Maj+Tab` |
-| Accéder aux neuf premiers onglets | `Ctrl+1` à `Ctrl+9` |
-| Fermer l’onglet actif | `Ctrl+W` |
-| Recharger l’onglet actif | `Ctrl+R` |
+| Add an account | `Ctrl+T` |
+| Next / previous account | `Ctrl+Tab` / `Ctrl+Shift+Tab` |
+| Select one of the first nine tabs | `Ctrl+1` to `Ctrl+9` |
+| Close the active tab | `Ctrl+W` |
+| Reload the active tab | `Ctrl+R` |
 
-## Paramètres
+## Settings
 
-Cliquez sur **⚙** dans la barre supérieure.
+Click **⚙** in the top toolbar. The application initially uses French; select **Langue → English** to switch to English.
 
-- **Démarrer avec Windows** : ouvre MultiDiscord à l’ouverture de votre session Windows. Cette option est désactivée par défaut et disponible dans la version installée.
-- **Réduire au lieu de fermer avec la croix** : conserve les comptes actifs et réduit la fenêtre dans la barre des tâches lorsque vous cliquez sur la croix. Par défaut, la croix ferme l’application.
-- **Quitter MultiDiscord** : ferme complètement l’application, même lorsque la réduction par la croix est activée.
+- **Language → Français / English** changes the interface immediately without signing out. Discord’s language is configured separately in Discord.
+- **Start with Windows** opens MultiDiscord when you sign in to Windows. Off by default; available in the installed application.
+- **Minimize instead of closing with the close button** keeps accounts running and minimizes the window to the taskbar. When disabled, closing the window asks for confirmation. Canceling keeps accounts and calls open.
+- **Automatic updates** checks for new releases at startup and periodically, then downloads them in the background. When an update is ready, restart when convenient or quit normally to install it. You can disable automatic updates and use **Check for updates** instead.
+- **Quit MultiDiscord** exits the application even when minimizing on close is enabled.
 
-MultiDiscord doit rester ouvert pour recevoir des notifications. Il ne fonctionne pas dans la zone de notification Windows après sa fermeture.
+MultiDiscord must remain open to receive notifications. It does not continue running in the Windows notification area after exiting.
 
 ## Notifications
 
-Les compteurs de notifications apparaissent sur chaque onglet. Leur total s’affiche aussi sur l’icône de l’application dans la barre des tâches Windows, avec `99+` au-delà de 99. Le badge disparaît lorsque Discord remet les compteurs à zéro.
+Each tab displays Discord’s notification count. Their total also appears as a red Windows taskbar badge, showing `99+` above 99. The badge clears when Discord resets its counts.
 
-Ces compteurs proviennent de Discord et dépendent de ses réglages : ils ne représentent pas forcément tous les messages non lus.
+These counts come from Discord and depend on its settings; they do not necessarily represent every unread message.
 
-Si les notifications ne s’affichent pas :
+If notifications are missing:
 
-- Vérifiez les réglages de notifications du compte dans Discord et ceux de Windows.
-- Vérifiez que les badges sont activés dans les paramètres de la barre des tâches Windows.
-- Gardez les onglets concernés ouverts ; vous pouvez réduire la fenêtre.
+- Check notification settings in both Discord and Windows.
+- Make sure taskbar badges are enabled in Windows settings.
+- Keep the relevant tabs open. You can minimize the application window.
 
-Couper le son d’un onglet ne désactive pas les notifications visuelles.
+Muting a tab does not disable visual notifications.
 
-## Vencord et thèmes BetterDiscord
+## Vencord and BetterDiscord themes
 
-Dans **Comptes → Personnaliser cet onglet** :
+Open **Accounts → Customize this tab**:
 
-- **Vencord Web** télécharge et active la version web officielle de Vencord pour ce compte. Décochez l’option pour le désactiver.
-- **Mettre à jour Vencord Web** actualise Vencord pour les comptes où il est activé.
-- **Importer un thème CSS** permet de choisir un fichier `.css` ou `.theme.css`, notamment un thème BetterDiscord.
-- **Retirer le thème CSS** désactive le thème du compte actif.
+- **Vencord Web** downloads and enables the official web build for the selected account. Uncheck it to disable it.
+- **Update Vencord Web** updates Vencord for accounts where it is enabled.
+- **Import a CSS theme** lets you select a `.css` or `.theme.css` file, including BetterDiscord themes.
+- **Remove CSS theme** removes the active account’s imported theme.
 
-Les réglages Vencord et les thèmes sont propres à chaque compte. L’activation de Vencord réduit certaines protections contre l’injection de code uniquement dans les onglets concernés ; leur désactivation puis rechargement rétablit ces protections. Activez uniquement des personnalisations de confiance.
+Vencord settings and themes are separate for each account. Enabling Vencord relaxes some protections against code injection only in the affected tabs; disabling it and reloading restores those protections. Use customizations you trust.
 
-**Les plugins natifs BetterDiscord ne sont pas compatibles.** Le support BetterDiscord concerne ses thèmes CSS. Certains plugins Vencord réservés au client natif ne sont pas disponibles. Pour le CSS personnalisé, utilisez l’import de fichier ; l’éditeur QuickCSS en fenêtre séparée n’est pas pris en charge.
+**Native BetterDiscord plugins are not supported.** BetterDiscord support covers CSS themes. Some Vencord plugins require the native Discord client and are unavailable here. For custom CSS, import a file; the separate QuickCSS editor window is not supported.
 
-## Connexion et données locales
+## Screen sharing
 
-Connectez-vous directement sur le site officiel de Discord affiché dans l’application, par mot de passe ou code QR. Les fenêtres de clé d’accès sont désactivées ; les passkeys ne sont pas disponibles dans MultiDiscord.
+1. Join a voice channel or Discord call in the account you want to use.
+2. Click Discord’s screen-sharing button.
+3. In the MultiDiscord picker, select **Screens** or **Windows**, then choose a source.
+4. Click **Share**, or cancel without starting a capture.
 
-Les sessions et préférences sont conservées dans le dossier de données de l’application, habituellement `%APPDATA%/MultiDiscord` ou `%APPDATA%/multidiscord`. Ce dossier contient des données de connexion : ne le partagez pas. Fermer un onglet ne supprime pas sa session.
+On Windows, **Share system audio** is available when Discord requests audio. It is off by default and may include sound from all applications, including the Discord call. Audio is not limited to the selected window.
 
-L’application n’a besoin d’aucun jeton Discord ni clé API à saisir manuellement. Ne communiquez jamais vos mots de passe, jetons ou fichiers de session dans un ticket ou une capture d’écran.
+Stop sharing using Discord’s sharing controls. Each new request requires a source selection. Closing or reloading the account tab stops its capture. Closed windows and protected content may not be capturable.
 
-## Limites et mises à jour
+## Sign-in and local data
 
-- Le microphone et la caméra demandent votre autorisation. Le partage d’écran n’est pas encore pris en charge.
-- Les fonctions propres au client Discord natif, comme l’overlay de jeu et les raccourcis globaux, ne sont pas disponibles.
-- Une modification de l’interface Discord peut affecter la détection du profil, les compteurs ou les thèmes.
-- Les mises à jour de MultiDiscord s’installent en téléchargeant le nouvel installateur depuis les releases. Il n’y a pas encore de mise à jour automatique.
+Sign in directly on Discord’s official website within the application using your password or QR code. Passkey prompts are disabled; passkeys are not available in MultiDiscord.
 
-## Besoin d’aide ?
+Sessions and preferences are stored in the application data folder, usually `%APPDATA%/MultiDiscord` or `%APPDATA%/multidiscord`. This folder contains sign-in data: do not share it. Closing a tab does not delete its session.
 
-[Signalez un problème](https://github.com/v-ntv/MultiDiscord/issues) en précisant votre version de MultiDiscord, votre version de Windows et les étapes permettant de reproduire le problème. Masquez toute information personnelle dans vos captures.
+The application does not require you to enter a Discord token or API key manually. Never post passwords, tokens or session files in issues or screenshots.
 
-MultiDiscord est un projet indépendant, non affilié à Discord, Vencord ou BetterDiscord.
+## Updates and limitations
+
+- Automatic updates use public releases from this GitHub repository and require no API key. They are available in the installed Windows version. Versions 0.4.0 and earlier need one manual installation of a newer version to enable automatic updates.
+- Microphone and camera access require permission. Screen sharing has its own source picker; system audio sharing is supported on Windows only.
+- Native Discord features such as the game overlay and global shortcuts are not available.
+- Discord interface changes may affect profile detection, notification counts or themes.
+
+## Need help?
+
+[Report an issue](https://github.com/v-ntv/MultiDiscord/issues) with your MultiDiscord version, Windows version and reproduction steps. Hide personal information in screenshots.
+
+MultiDiscord is an independent project, not affiliated with Discord, Vencord or BetterDiscord.
