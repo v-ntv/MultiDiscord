@@ -4,6 +4,8 @@ English | [Français](README.fr.md)
 
 All your Discord accounts in one window, with a separate tab and session for each account.
 
+![prez](src/assets/img/prez.png)
+
 **[Download for Windows](https://github.com/v-ntv/MultiDiscord/releases/latest/download/MultiDiscord-Setup.exe)** · [All releases](https://github.com/v-ntv/MultiDiscord/releases)
 
 ## Installation

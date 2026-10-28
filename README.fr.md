@@ -4,6 +4,8 @@
 
 Tous vos comptes Discord dans une seule fenêtre, avec un onglet par compte.
 
+![prez](src/assets/img/prez.png)
+
 **[Télécharger pour Windows](https://github.com/v-ntv/MultiDiscord/releases/latest/download/MultiDiscord-Setup.exe)** · [Voir les versions disponibles](https://github.com/v-ntv/MultiDiscord/releases)
 
 ## Installation
