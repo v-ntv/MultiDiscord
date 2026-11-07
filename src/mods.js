@@ -15,8 +15,8 @@ function vencord() {
   } catch { return null; }
 }
 
-async function download(name, t) {
-  const response = await net.fetch(`https://github.com/Vendicated/Vencord/releases/download/devbuild/${name}`, { signal: AbortSignal.timeout(60000) });
+async function download(name, t, signal) {
+  const response = await net.fetch(`https://github.com/Vendicated/Vencord/releases/download/devbuild/${name}`, { signal });
   if (!response.ok) throw new Error(t('downloadError', { name, status: response.status }));
   const bytes = await response.arrayBuffer();
   if (bytes.byteLength > 15 * 1024 * 1024) throw new Error(t('vencordSize'));
@@ -29,7 +29,8 @@ async function installVencord(window, language = 'en') {
   if (installing) return false;
   installing = true;
   try {
-    const [script, css] = await Promise.all([download('browser.js', t), download('browser.css', t)]);
+    const signal = AbortSignal.timeout(window ? 60000 : 10000);
+    const [script, css] = await Promise.all([download('browser.js', t, signal), download('browser.css', t, signal)]);
     if (!script.toString('utf8').includes('Vencord') || script.toString('utf8').trimStart().startsWith('<')) throw new Error(t('vencordInvalid'));
     const version = crypto.createHash('sha256').update(script).update(css).digest('hex');
     const folder = path.join(root(), version);
@@ -41,7 +42,7 @@ async function installVencord(window, language = 'en') {
     return true;
   } catch (error) {
     console.error('Vencord installation:', error.message);
-    if (!window.isDestroyed()) await dialog.showMessageBox(window, { type: 'error', message: t('vencordInstallError'), detail: error.message });
+    if (window && !window.isDestroyed()) await dialog.showMessageBox(window, { type: 'error', message: t('vencordInstallError'), detail: error.message });
     return false;
   } finally { installing = false; }
 }

@@ -36,6 +36,8 @@ function render(state) {
   const activeChanged = current.activeId !== state.activeId;
   current = state;
   window.MultiDiscordI18n.applyDocument(document, state.settings?.language);
+  const active = state.accounts.find(a => a.id === state.activeId);
+  document.querySelector('#account-loading').hidden = !active?.loading;
   if (editingId) return;
   const previousFocus = document.hasFocus() ? document.activeElement?.closest('[data-id]')?.dataset.id : undefined;
   const scroll = tabs.scrollLeft;
@@ -88,7 +90,6 @@ function render(state) {
   tabs.scrollLeft = scroll;
   if (activeChanged) [...tabs.children].find(tab => tab.dataset.id === state.activeId)?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
   if (previousFocus) [...tabs.children].find(tab => tab.dataset.id === previousFocus)?.focus({ preventScroll: true });
-  const active = state.accounts.find(a => a.id === state.activeId);
   const mute = document.querySelector('#mute'); mute.disabled = !active;
   mute.setAttribute('aria-pressed', String(active?.muted || false));
   mute.title = t(active?.muted ? 'unmute' : 'mute');

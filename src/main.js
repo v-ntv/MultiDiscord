@@ -20,6 +20,7 @@ let quitting = false;
 let lastOverlay = -1;
 let screenShare;
 let updates;
+let vencordStartupUpdate;
 const badgeImages = new Map();
 const t = (key, values) => translate(config?.settings?.language, key, values);
 const closeGuard = createCloseGuard({ getSettings: () => config.settings, isQuitting: () => quitting,
@@ -89,19 +90,30 @@ function layout() {
   if (!window || window.isDestroyed()) return;
   const [width, height] = window.getContentSize();
   for (const [id, view] of views) {
-    view.setVisible(id === config.activeId);
+    view.setVisible(id === config.activeId && !runtime.get(id)?.loading);
     view.setBounds({ x: 0, y: HEADER_HEIGHT, width, height: Math.max(0, height - HEADER_HEIGHT) });
   }
 }
 
 function update(id, change) {
-  runtime.set(id, { ...runtime.get(id), ...change });
+  const previous = runtime.get(id);
+  if (!previous) return;
+  runtime.set(id, { ...previous, ...change });
+  if ('loading' in change && change.loading !== previous.loading) layout();
   broadcast();
 }
 
 function external(url) {
   try { if (['https:', 'http:', 'mailto:'].includes(new URL(url).protocol)) shell.openExternal(url).catch(console.error); }
   catch { /* Ignore unsupported URLs. */ }
+}
+
+function navigateAccount(account, reload = false) {
+  const contents = views.get(account.id)?.webContents;
+  if (!contents || contents.isDestroyed() || quitting) return;
+  if (account.vencord && vencordStartupUpdate) return;
+  if (reload) contents.reload();
+  else contents.loadURL('https://discord.com/app').catch(() => {});
 }
 
 function attach(account) {
@@ -150,7 +162,9 @@ function attach(account) {
   contents.on('will-navigate', guard);
   contents.on('will-redirect', guard);
   contents.on('page-title-updated', (_event, title) => update(account.id, { title, unread: unreadFromTitle(title) }));
-  contents.on('did-start-loading', () => update(account.id, { loading: true, error: null }));
+  contents.on('did-start-navigation', event => {
+    if (event.isMainFrame && !event.isSameDocument) update(account.id, { loading: true, error: null });
+  });
   contents.on('did-stop-loading', () => update(account.id, { loading: false }));
   contents.on('dom-ready', () => {
     const css = [account.vencord ? mods.vencord()?.css : '', mods.theme(account.id)].filter(Boolean).join('\n');
@@ -165,8 +179,12 @@ function attach(account) {
     if (shortcut(input)) event.preventDefault();
   });
   runtime.set(account.id, { unread: 0, loading: true });
-  contents.loadURL('https://discord.com/app').catch(() => {});
   layout();
+  if (account.vencord && vencordStartupUpdate) {
+    vencordStartupUpdate.then(() => {
+      if (views.get(account.id) === view) navigateAccount(account);
+    });
+  } else navigateAccount(account);
 }
 
 function activate(id) {
@@ -205,7 +223,13 @@ function close(id) {
 function accountMenu() {
   const closed = config.accounts.filter(a => !a.open);
   const active = config.accounts.find(a => a.id === config.activeId);
-  const reload = () => { save(); broadcast(); views.get(active?.id)?.webContents.reload(); };
+  const reload = async () => {
+    save(); broadcast();
+    const view = views.get(active?.id);
+    if (!view?.webContents.getURL()) return;
+    if (active.vencord && vencordStartupUpdate) await vencordStartupUpdate;
+    if (views.get(active.id) === view) navigateAccount(active, true);
+  };
   Menu.buildFromTemplate([
     { label: t('addAccount'), accelerator: 'CmdOrCtrl+T', click: add },
     ...(closed.length ? [{ type: 'separator' }, { label: t('reopenAccount'), enabled: false }, ...closed.map(a => ({ label: a.profile?.displayName || a.name, click: () => activate(a.id) }))] : []),
@@ -231,7 +255,10 @@ function shortcut(input) {
   const key = input.key.toLowerCase();
   if (key === 't') add();
   else if (key === 'w' && config.activeId) close(config.activeId);
-  else if (key === 'r') views.get(config.activeId)?.webContents.reload();
+  else if (key === 'r') {
+    const active = config.accounts.find(a => a.id === config.activeId);
+    if (active) navigateAccount(active, true);
+  }
   else if (key === 'tab') {
     const opened = config.accounts.filter(a => a.open);
     const index = opened.findIndex(a => a.id === config.activeId);
@@ -322,7 +349,7 @@ else {
       else if (account) {
         if (action === 'activate') activate(id);
         else if (action === 'close') close(id);
-        else if (action === 'reload') views.get(id)?.webContents.loadURL('https://discord.com/app').catch(() => {});
+        else if (action === 'reload') navigateAccount(account);
         else if (action === 'rename' && typeof value === 'string' && value.trim()) account.name = value.trim().slice(0, 40);
         else if (action === 'mute') { account.muted = !account.muted; views.get(id)?.webContents.setAudioMuted(account.muted); }
         save(); broadcast();
@@ -330,6 +357,11 @@ else {
       return state();
     });
     Menu.setApplicationMenu(null);
+    if (config.accounts.some(a => a.vencord) || mods.vencord()) {
+      vencordStartupUpdate = mods.installVencord(null, config.settings.language).finally(() => {
+        vencordStartupUpdate = null;
+      });
+    }
     createWindow();
     updates.start();
     app.on('activate', () => { if (!window) createWindow(); });
